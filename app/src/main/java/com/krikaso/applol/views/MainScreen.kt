@@ -1,42 +1,51 @@
 package com.krikaso.applol.views
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import com.krikaso.applol.nav.Screens
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.krikaso.applol.navigation.AppNavigation
+import com.krikaso.applol.navigation.Screens
 
 @Composable
-fun MainScreen(navController: NavController) {
-    Column (
-        modifier = Modifier
-            .padding(top = 60.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Esta es la Pantalla Principal",
-            style = TextStyle(
-                fontSize = 24.sp, // Tamaño de la fuente (sp es para unidades escalables)
-                color = Color.Black, // Color del texto
-                textAlign = TextAlign.Center // Justificación del texto
-            ),
-        )
+fun MainScreen() {
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
 
-        Button(onClick = {
-            // Aquí haces la redirección al archivo LocalScreen.kt
-            navController.navigate(Screens.Local.route)
-        }) {
-            Text("Ir a Local Screen")
+    Scaffold(
+        bottomBar = {
+            BottomAppBar {
+                listOf(Screens.Audio, Screens.Local, Screens.Video).forEach { screen ->
+                    NavigationBarItem(
+                        icon = { Icon(imageVector = screen.icon, contentDescription = screen.title) },
+                        label = { Text(screen.title) },
+                        selected = currentDestination?.route == screen.route,
+                        onClick = {
+                            navController.navigate(screen.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        Box(modifier = Modifier.padding(innerPadding)){
+            AppNavigation(navController = navController)
         }
     }
 }
